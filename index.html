@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Asiakkuudenhallinnan demot</title>
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#14231f;--mut:#5b6b66;--line:#dde4e1;--pri:#0f5c4a;--onpri:#fff;--warn:#fef3c7;--warnink:#7a4a05}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1715;--card:#17211e;--ink:#e8f0ed;--mut:#9fb0aa;--line:#2a3a35;--pri:#4cc2a1;--onpri:#04140f;--warn:#3a2c0c;--warnink:#fbbf24}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 16px 48px}
+h1{font-size:28px;line-height:1.2;margin:0 0 10px}
+.lead{color:var(--mut);margin:0 0 20px;font-size:17px}
+.demo{display:inline-block;background:var(--warn);color:var(--warnink);border-radius:999px;padding:3px 12px;font-size:13px;font-weight:600;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:inherit;text-decoration:none}
+a.card:hover{border-color:var(--pri)}
+a.card h2{font-size:19px;margin:0 0 4px;color:var(--pri)}
+a.card p{margin:0;color:var(--mut)}
+h3{font-size:16px;margin:28px 0 6px}
+ul{margin:0;padding-left:20px;color:var(--mut)}
+.note{margin-top:28px;padding:12px 14px;border-radius:12px;background:var(--warn);color:var(--warnink);font-size:14px}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <span class="demo">Demo keksityllä datalla</span>
+  <h1>Asiakkuudenhallinnan demot</h1>
+  <p class="lead">Kolme pientä työkalua, jotka näyttävät, miten asiakastiedot, asiakaspalvelu ja kampanjasuunnittelu voivat toimia yhdessä. Kaikki tiedot ovat keksittyjä.</p>
+  <div class="grid">
+    <a class="card" href="crm.html"><h2>CRM</h2><p>Pelaajat, elinkaaren vaiheet, kampanjat ja tehtävät. Kampanjat ohittavat automaattisesti ne, joilla on itsesulku, pelirajoitus tai ei markkinointilupaa.</p></a>
+    <a class="card" href="crm.html"><h2>Kampanja-ideat tekoälyllä</h2><p>CRM:n Kampanjat-välilehdellä painike “Pyydä ideoita”. Tekoäly saa vain määriä, ei nimiä, ja ehdottaa viestiluonnoksia, jotka voi muokata kampanjaksi.</p></a>
+    <a class="card" href="bot.html"><h2>Asiakaspalvelubotti</h2><p>Chat-ikkuna on mukana kaikilla sivuilla (oikea alakulma). Vastaa vain tietopankin tiedoista, ohjaa tarvittaessa ihmiselle ja huomioi vastuullisen pelaamisen.</p></a>
+  </div>
+  <h3>Periaatteet</h3>
+  <ul>
+    <li>Pelaajan suojaus ensin: itsesulku ja pelirajoitus estävät viestit.</li>
+    <li>Viestikatto: sama pelaaja saa viestin enintään 14 päivän välein.</li>
+    <li>Tekoäly ei näe henkilötietoja, eikä se lupaa voittoja tai painosta pelaamaan.</li>
+  </ul>
+  <div class="note">Nämä ovat esittelyjä, eivät yrityksen järjestelmiä. Viestejä ei lähetetä oikeasti, ja CRM:n tiedot pysyvät vain käyttäjän omassa selaimessa.</div>
+</main>
+<script src="widget.js" defer></script>
+</body>
+</html>

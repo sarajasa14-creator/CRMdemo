@@ -1,0 +1,8 @@
+{
+  "name": "asiakkuudenhallinnan-demot",
+  "private": true,
+  "description": "CRM demo, customer-service bot and campaign-ideas advisor. @netlify/blobs is used by the daily caps in netlify/functions/bot.mjs and ideas.mjs.",
+  "dependencies": {
+    "@netlify/blobs": "^10.7.11"
+  }
+}
