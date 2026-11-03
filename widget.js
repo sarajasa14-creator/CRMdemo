@@ -78,7 +78,7 @@ async function send(text) {
   try {
     const r = await fetch(CFG.endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-11) }) });
     const j = await r.json().catch(() => ({})); wait.remove();
-    if (!r.ok || !j.reply) { history.pop(); add('err', ERR[j.error] || ERR.upstream); if (j.error === 'busy' || j.error === 'not_configured') contact(''); }
+    if (!r.ok || !j.reply) { history.pop(); add('err', (ERR[j.error] || ERR.upstream) + (j.error === 'upstream' ? ' (koodi: ' + (j.status || '?') + (j.type ? ', ' + j.type : '') + ')' : (r.status === 404 ? ' (koodi: 404, funktiota ei löydy)' : ''))); if (j.error === 'busy' || j.error === 'not_configured') contact(''); }
     else { history.push({ role: 'assistant', content: j.reply }); add('bot', j.reply); if (j.handoff) contact(j.contact); }
   } catch (e) { wait.remove(); history.pop(); add('err', ERR.upstream); }
   busy = false; s.disabled = false; q.focus();
