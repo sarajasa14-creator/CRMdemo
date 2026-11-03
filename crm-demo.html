@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Cashback-CRM – demo</title>
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#14231f;--mut:#5b6b66;--line:#dde4e1;--pri:#0f5c4a;--pri2:#e3f1ec;--warn:#b45309;--warn2:#fef3c7;--bad:#b42318;--bad2:#fee4e2;--ok:#067647;--ok2:#d1fadf}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1715;--card:#17211e;--ink:#e8f0ed;--mut:#9fb0aa;--line:#2a3a35;--pri:#4cc2a1;--pri2:#173a31;--warn:#fbbf24;--warn2:#3a2c0c;--bad:#f97066;--bad2:#3b1512;--ok:#47cd89;--ok2:#0f2f21}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font-size:19px;margin:0}
+.demo{background:var(--warn2);color:var(--warn);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
+nav{display:flex;gap:4px;flex-wrap:wrap;padding:10px 16px 0}
+nav button{border:0;background:transparent;color:var(--mut);padding:9px 14px;border-radius:10px 10px 0 0;font:inherit;font-weight:600;cursor:pointer}
+nav button[aria-selected=true]{background:var(--card);color:var(--pri);box-shadow:0 -1px 0 var(--line),1px 0 0 var(--line),-1px 0 0 var(--line)}
+main{background:var(--card);margin:0 16px 24px;padding:16px;border:1px solid var(--line);border-radius:0 12px 12px 12px;min-height:60vh}
+button.b,select,input,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+button.b{cursor:pointer;font-weight:600}
+button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+@media(prefers-color-scheme:dark){button.pri{color:#04140f}}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.bar input[type=search]{flex:1;min-width:180px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--mut);font-weight:600}
+tr.row{cursor:pointer}tr.row:hover{background:var(--pri2)}
+.tbl{overflow-x:auto}
+.tag{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600;background:var(--pri2);color:var(--pri);margin:0 4px 2px 0}
+.tag.warn{background:var(--warn2);color:var(--warn)}.tag.bad{background:var(--bad2);color:var(--bad)}.tag.ok{background:var(--ok2);color:var(--ok)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.col{background:var(--bg);border-radius:10px;padding:10px}
+.col h3{margin:0 0 2px;font-size:15px}.col .sub{color:var(--mut);font-size:12px;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:8px;cursor:pointer}
+.card:hover{border-color:var(--pri)}
+.card small{color:var(--mut);display:block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:24px}.kpi span{color:var(--mut);font-size:13px}
+.hbar{display:grid;grid-template-columns:110px 1fr 40px;gap:8px;align-items:center;margin:5px 0}.hbar i{display:block;height:14px;border-radius:7px;background:var(--pri)}
+.camp{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.camp h3{margin:0 0 4px;font-size:16px}.camp p{margin:4px 0;color:var(--mut)}
+.note{background:var(--ok2);color:var(--ok);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:14px}
+.note.w{background:var(--warn2);color:var(--warn)}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);width:min(560px,94vw);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}
+dialog input,dialog select,dialog textarea{width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mut{color:var(--mut)}
+.over{color:var(--bad);font-weight:600}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.empty{padding:30px;text-align:center;color:var(--mut)}
+@media(max-width:560px){.two{grid-template-columns:1fr}main{margin:0 8px 16px;padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Cashback-CRM <span class="demo">DEMO – keksittyä dataa</span></h1>
+  <div class="mut" style="font-size:13px">Pelaajat, elinkaari, kampanjat ja tehtävät yhdessä paikassa. Tiedot pysyvät vain tässä selaimessa.</div></div>
+  <div class="bar" style="margin:0">
+    <button class="b" id="exp">Vie CSV</button>
+    <button class="b" id="imp">Tuo CSV</button>
+    <button class="b" id="reset">Palauta demodata</button>
+    <input type="file" id="file" accept=".csv,text/csv" hidden>
+  </div>
+</header>
+<nav role="tablist" id="tabs">
+  <button role="tab" data-t="rep" aria-selected="true">Yhteenveto</button>
+  <button role="tab" data-t="life" aria-selected="false">Elinkaari</button>
+  <button role="tab" data-t="mem" aria-selected="false">Pelaajat</button>
+  <button role="tab" data-t="camp" aria-selected="false">Kampanjat</button>
+  <button role="tab" data-t="task" aria-selected="false">Tehtävät</button>
+</nav>
+<main id="view"></main>
+
+<dialog id="dlg"><form method="dialog" id="frm"></form></dialog>
+
+<script>
+'use strict';
+const KEY='cashback-crm-demo-v1', DAY=864e5, CAP_DAYS=14;
+const today=()=>new Date().toISOString().slice(0,10);
+const daysAgo=d=>new Date(Date.now()-d*DAY).toISOString().slice(0,10);
+const diff=s=>s?Math.floor((Date.now()-new Date(s))/DAY):9999;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur=n=>new Intl.NumberFormat('fi-FI',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+const fmtD=s=>s?new Date(s).toLocaleDateString('fi-FI'):'–';
+
+/* ---------- demo data (all invented) ---------- */
+function seed(){
+  const first=['Aino','Eetu','Veera','Joni','Sanna','Mikko','Laura','Tuomas','Henna','Ville','Noora','Antti','Emilia','Jere','Pauliina','Lauri','Katri','Ossi','Minna','Teemu'];
+  const last=['Korhonen','Virtanen','Mäkinen','Nieminen','Laine','Heikkinen','Koskinen','Järvinen','Lehtonen','Salminen'];
+  let r=7;const rnd=()=>(r=(r*9301+49297)%233280)/233280;
+  const members=[];
+  for(let i=0;i<44;i++){
+    const joinedAgo=Math.floor(rnd()*400)+1;
+    const lastAgo=Math.min(joinedAgo,Math.floor(rnd()*(rnd()<.4?220:35)));
+    const rg=rnd()<.07?'excluded':rnd()<.1?'limit':'none';
+    members.push({id:'m'+i,name:first[i%20]+' '+last[Math.floor(rnd()*10)],email:'pelaaja'+(i+1)+'@example.com',
+      joined:daysAgo(joinedAgo),last:daysAgo(lastAgo),cashback:Math.round(rnd()*rnd()*900),
+      consent:rnd()>.22,rg,lastContact:rnd()<.25?daysAgo(Math.floor(rnd()*10)):'',tags:rnd()<.3?['turnaukset']:[],note:''});
+  }
+  const campaigns=[
+    {id:'c1',name:'Tervetuloa-sarja',seg:'new',channel:'Sähköposti',msg:'Kiitos liittymisestä! Näin cashback toimii ja missä näet saamasi palautukset.',status:'valmis',sent:0},
+    {id:'c2',name:'Kuukauden cashback-yhteenveto',seg:'active',channel:'Sähköposti',msg:'Tämän kuun palautuksesi yhteenvetona ja uudet turnaukset.',status:'valmis',sent:0},
+    {id:'c3',name:'Turnausviikonlopun tapahtuma',seg:'all',channel:'Sähköposti',msg:'Turnaukset ja palkinnot tulossa. Muista myös oman pelaamisen rajat.',status:'luonnos',sent:0},
+    {id:'c4',name:'Kaipaamme sinua – yksi muistutus',seg:'dormant',channel:'Sähköposti',msg:'Hei, pitkästä aikaa! Tässä päivitys uusista toiminnoista. Voit myös peruuttaa viestit milloin tahansa.',status:'luonnos',sent:0}
+  ];
+  const tasks=[
+    {id:'t1',mid:'m3',text:'Soita ja kysy, miksi turnausosallistuminen on hiljentynyt',due:daysAgo(-2),done:false},
+    {id:'t2',mid:'m8',text:'Päivitä markkinointilupa, kun pelaaja vastaa viestiin',due:daysAgo(3),done:false}
+  ];
+  return {members,campaigns,tasks};
+}
+let D;
+function load(){try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!D||!D.members)D=seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
+
+/* ---------- logic ---------- */
+const stageOf=m=>diff(m.joined)<=14?'new':diff(m.last)<=21?'active':diff(m.last)<=60?'cooling':'dormant';
+const STAGES=[['new','Uudet','Liittynyt alle 14 pv sitten'],['active','Aktiiviset','Viimeisin toiminta alle 21 pv'],['cooling','Hiljenevät','21–60 pv hiljaiseloa'],['dormant','Lepotilassa','Yli 60 pv ilman toimintaa']];
+const SEG={new:'Uudet',active:'Aktiiviset',cooling:'Hiljenevät',dormant:'Lepotilassa',all:'Kaikki'};
+const RG={none:['Ei rajoituksia',''],limit:['Pelirajoitus','warn'],excluded:['Itsesulku','bad']};
+/* A member may be contacted only if: marketing consent + no self-exclusion/limit + not contacted in the last CAP_DAYS */
+function blocked(m){
+  if(m.rg==='excluded')return 'Itsesulku';
+  if(m.rg==='limit')return 'Pelirajoitus';
+  if(!m.consent)return 'Ei markkinointilupaa';
+  if(diff(m.lastContact)<CAP_DAYS)return 'Viestikatto ('+CAP_DAYS+' pv)';
+  return '';
+}
+function reach(c){
+  const inSeg=D.members.filter(m=>c.seg==='all'||stageOf(m)===c.seg);
+  const ok=[],ex={};
+  for(const m of inSeg){const b=blocked(m);if(b){ex[b]=(ex[b]||0)+1}else ok.push(m)}
+  return {inSeg,ok,ex};
+}
+
+/* ---------- views ---------- */
+const view=document.getElementById('view');let tab='rep',q='';
+function render(){
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===tab));
+  ({rep:vRep,life:vLife,mem:vMem,camp:vCamp,task:vTask})[tab]();
+}
+function vRep(){
+  const M=D.members,n=M.length,act=M.filter(m=>stageOf(m)==='active').length;
+  const tot=M.reduce((s,m)=>s+m.cashback,0),cons=M.filter(m=>m.consent).length;
+  const rg=M.filter(m=>m.rg!=='none').length,nw=M.filter(m=>diff(m.joined)<=30).length;
+  const counts=STAGES.map(([k,l])=>[l,M.filter(m=>stageOf(m)===k).length]);
+  const open=D.tasks.filter(t=>!t.done).length;
+  view.innerHTML=`<div class="kpis">
+   <div class="kpi"><b>${n}</b><span>Pelaajaa yhteensä</span></div>
+   <div class="kpi"><b>${act}</b><span>Aktiivista (${Math.round(act/n*100)} %)</span></div>
+   <div class="kpi"><b>${nw}</b><span>Uutta 30 päivässä</span></div>
+   <div class="kpi"><b>${eur(tot)}</b><span>Cashbackia maksettu</span></div>
+   <div class="kpi"><b>${Math.round(cons/n*100)} %</b><span>Markkinointilupa</span></div>
+   <div class="kpi"><b>${rg}</b><span>Rajoitus tai itsesulku</span></div>
+   <div class="kpi"><b>${open}</b><span>Avointa tehtävää</span></div></div>
+   <h3 style="margin:0 0 6px">Pelaajat elinkaaren vaiheittain</h3>
+   ${counts.map(([l,c])=>`<div class="hbar"><span>${l}</span><span><i style="width:${n?c/n*100:0}%"></i></span><b>${c}</b></div>`).join('')}
+   <div class="note" style="margin-top:16px">Kampanjat ohittavat automaattisesti pelaajat, joilla on itsesulku, pelirajoitus tai ei markkinointilupaa. Samalle pelaajalle ei lähetetä viestiä useammin kuin ${CAP_DAYS} päivän välein.</div>`;
+}
+function vLife(){
+  view.innerHTML=`<div class="cols">${STAGES.map(([k,l,s])=>{
+    const L=D.members.filter(m=>stageOf(m)===k).sort((a,b)=>diff(a.last)-diff(b.last));
+    return `<div class="col"><h3>${l} (${L.length})</h3><div class="sub">${s}</div>${L.map(m=>`<div class="card" data-id="${m.id}" tabindex="0"><b>${esc(m.name)}</b>
+      <small>Viimeksi ${fmtD(m.last)} · ${eur(m.cashback)}</small>
+      ${m.rg!=='none'?`<span class="tag ${RG[m.rg][1]}">${RG[m.rg][0]}</span>`:''}${m.consent?'':'<span class="tag warn">Ei lupaa</span>'}</div>`).join('')||'<div class="mut">Ei pelaajia</div>'}</div>`}).join('')}</div>`;
+  view.querySelectorAll('.card').forEach(c=>{c.onclick=()=>openMember(c.dataset.id);c.onkeydown=e=>{if(e.key==='Enter')openMember(c.dataset.id)}});
+}
+function vMem(){
+  const L=D.members.filter(m=>!q||(m.name+m.email+m.tags.join(' ')).toLowerCase().includes(q.toLowerCase()));
+  view.innerHTML=`<div class="bar"><input type="search" id="q" placeholder="Hae nimellä, sähköpostilla tai tagilla" value="${esc(q)}"><button class="b pri" id="add">+ Uusi pelaaja</button></div>
+  <div class="tbl"><table><thead><tr><th>Nimi</th><th>Vaihe</th><th>Viimeksi aktiivinen</th><th>Cashback</th><th>Tila</th></tr></thead><tbody>
+  ${L.map(m=>`<tr class="row" data-id="${m.id}" tabindex="0"><td><b>${esc(m.name)}</b><div class="mut" style="font-size:12px">${esc(m.email)}</div></td>
+   <td>${STAGES.find(s=>s[0]===stageOf(m))[1]}</td><td>${fmtD(m.last)}</td><td>${eur(m.cashback)}</td>
+   <td>${m.rg!=='none'?`<span class="tag ${RG[m.rg][1]}">${RG[m.rg][0]}</span>`:''}${m.consent?'<span class="tag ok">Lupa</span>':'<span class="tag warn">Ei lupaa</span>'}${m.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</td></tr>`).join('')}
+  </tbody></table>${L.length?'':'<div class="empty">Ei hakutuloksia.</div>'}</div>`;
+  const qi=document.getElementById('q');qi.oninput=()=>{q=qi.value;const p=qi.selectionStart;vMem();const n=document.getElementById('q');n.focus();n.setSelectionRange(p,p)};
+  document.getElementById('add').onclick=()=>openMember(null);
+  view.querySelectorAll('tr.row').forEach(r=>{r.onclick=()=>openMember(r.dataset.id);r.onkeydown=e=>{if(e.key==='Enter')openMember(r.dataset.id)}});
+}
+function vCamp(){
+  view.innerHTML=`<div class="bar"><button class="b pri" id="addc">+ Uusi kampanja</button></div>`+D.campaigns.map(c=>{
+    const r=reach(c),exs=Object.entries(r.ex);
+    return `<div class="camp"><h3>${esc(c.name)} <span class="tag ${c.status==='valmis'?'ok':''}">${c.status}</span></h3>
+     <p>${esc(c.channel)} · Kohderyhmä: <b>${SEG[c.seg]}</b> · Lähetetty yhteensä: ${c.sent}</p><p>“${esc(c.msg)}”</p>
+     <p><b>${r.ok.length}</b> vastaanottajaa saa viestin (kohderyhmässä ${r.inSeg.length}).</p>
+     ${exs.length?`<p>Ohitetaan automaattisesti: ${exs.map(([k,v])=>`<span class="tag ${k.startsWith('Itse')||k.startsWith('Pelir')?'bad':'warn'}">${k}: ${v}</span>`).join('')}</p>`:''}
+     <div class="bar" style="margin:8px 0 0"><button class="b" data-e="${c.id}">Muokkaa</button><button class="b pri" data-s="${c.id}" ${r.ok.length?'':'disabled'}>Merkitse lähetetyksi (demo)</button></div></div>`}).join('')+
+   `<div class="note w">Demo ei lähetä oikeita viestejä. Painike vain kirjaa kontaktin pelaajille, jolloin viestikatto alkaa.</div>`;
+  document.getElementById('addc').onclick=()=>openCamp(null);
+  view.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openCamp(b.dataset.e));
+  view.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{
+    const c=D.campaigns.find(x=>x.id===b.dataset.s),r=reach(c);
+    r.ok.forEach(m=>m.lastContact=today());c.sent+=r.ok.length;c.status='valmis';save();vCamp()});
+}
+function vTask(){
+  const L=[...D.tasks].sort((a,b)=>a.done-b.done||a.due.localeCompare(b.due));
+  view.innerHTML=`<div class="bar"><button class="b pri" id="addt">+ Uusi tehtävä</button></div>`+
+   (L.length?`<div class="tbl"><table><thead><tr><th></th><th>Tehtävä</th><th>Pelaaja</th><th>Eräpäivä</th></tr></thead><tbody>${L.map(t=>{
+    const m=D.members.find(x=>x.id===t.mid),od=!t.done&&t.due<today();
+    return `<tr><td><input type="checkbox" data-t="${t.id}" ${t.done?'checked':''} aria-label="Valmis"></td><td ${t.done?'class="mut" style="text-decoration:line-through"':''}>${esc(t.text)}</td><td>${m?esc(m.name):'–'}</td><td class="${od?'over':''}">${fmtD(t.due)}${od?' (myöhässä)':''}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Ei tehtäviä.</div>');
+  view.querySelectorAll('[data-t]').forEach(c=>c.onchange=()=>{D.tasks.find(t=>t.id===c.dataset.t).done=c.checked;save();vTask()});
+  document.getElementById('addt').onclick=()=>openTask();
+}
+
+/* ---------- dialogs ---------- */
+const dlg=document.getElementById('dlg'),frm=document.getElementById('frm');
+const uid=p=>p+Date.now().toString(36)+Math.floor(Math.random()*1e3);
+function openMember(id){
+  const m=id?D.members.find(x=>x.id===id):{name:'',email:'',joined:today(),last:today(),cashback:0,consent:false,rg:'none',tags:[],note:'',lastContact:''};
+  const tk=id?D.tasks.filter(t=>t.mid===id&&!t.done):[];
+  frm.innerHTML=`<h2 style="margin:0 0 6px">${id?esc(m.name):'Uusi pelaaja'}</h2>
+  ${id?`<div class="mut">Vaihe: <b>${STAGES.find(s=>s[0]===stageOf(m))[1]}</b>${blocked(m)?` · Viestit estetty: ${blocked(m)}`:' · Viestit sallittu'}</div>`:''}
+  <div class="two"><div><label for="f1">Nimi</label><input id="f1" value="${esc(m.name)}" required></div><div><label for="f2">Sähköposti</label><input id="f2" type="email" value="${esc(m.email)}"></div>
+  <div><label for="f3">Liittynyt</label><input id="f3" type="date" value="${m.joined}"></div><div><label for="f4">Viimeksi aktiivinen</label><input id="f4" type="date" value="${m.last}"></div>
+  <div><label for="f5">Cashback maksettu (€)</label><input id="f5" type="number" min="0" value="${m.cashback}"></div>
+  <div><label for="f6">Pelaajan suojaus</label><select id="f6">${Object.entries(RG).map(([k,v])=>`<option value="${k}" ${m.rg===k?'selected':''}>${v[0]}</option>`).join('')}</select></div></div>
+  <label><input type="checkbox" id="f7" ${m.consent?'checked':''} style="width:auto"> Markkinointilupa annettu</label>
+  <label for="f8">Tagit (pilkulla eroteltuna)</label><input id="f8" value="${esc(m.tags.join(', '))}">
+  <label for="f9">Muistiinpanot</label><textarea id="f9" rows="3">${esc(m.note)}</textarea>
+  ${tk.length?`<div style="margin-top:10px"><b>Avoimet tehtävät</b>${tk.map(t=>`<div>• ${esc(t.text)} (${fmtD(t.due)})</div>`).join('')}</div>`:''}
+  <div class="bar" style="margin:16px 0 0;justify-content:space-between"><span>${id?'<button class="b" type="button" id="del">Poista</button> <button class="b" type="button" id="tk">+ Tehtävä</button>':''}</span>
+  <span><button class="b" value="cancel" formnovalidate>Sulje</button> <button class="b pri" id="ok" value="ok">Tallenna</button></span></div>`;
+  dlg.showModal();
+  frm.querySelector('#ok').onclick=e=>{
+    if(!frm.querySelector('#f1').value.trim()){return}
+    e.preventDefault();
+    Object.assign(m,{name:f1.value.trim(),email:f2.value.trim(),joined:f3.value||today(),last:f4.value||today(),cashback:+f5.value||0,rg:f6.value,consent:f7.checked,tags:f8.value.split(',').map(s=>s.trim()).filter(Boolean),note:f9.value});
+    if(!id){m.id=uid('m');D.members.push(m)}
+    save();dlg.close();render()};
+  if(id){frm.querySelector('#del').onclick=e=>{e.preventDefault();if(confirm('Poistetaanko pelaaja ja hänen tehtävänsä?')){D.members=D.members.filter(x=>x.id!==id);D.tasks=D.tasks.filter(t=>t.mid!==id);save();dlg.close();render()}};
+    frm.querySelector('#tk').onclick=e=>{e.preventDefault();dlg.close();openTask(id)}}
+}
+function openTask(mid){
+  frm.innerHTML=`<h2 style="margin:0 0 6px">Uusi tehtävä</h2>
+  <label for="g1">Tehtävä</label><input id="g1" required>
+  <div class="two"><div><label for="g2">Pelaaja</label><select id="g2"><option value="">–</option>${D.members.map(m=>`<option value="${m.id}" ${m.id===mid?'selected':''}>${esc(m.name)}</option>`).join('')}</select></div>
+  <div><label for="g3">Eräpäivä</label><input id="g3" type="date" value="${daysAgo(-3)}"></div></div>
+  <div class="bar" style="margin:16px 0 0;justify-content:flex-end"><button class="b" value="cancel" formnovalidate>Sulje</button><button class="b pri" id="ok">Tallenna</button></div>`;
+  dlg.showModal();
+  frm.querySelector('#ok').onclick=e=>{if(!g1.value.trim())return;e.preventDefault();D.tasks.push({id:uid('t'),mid:g2.value,text:g1.value.trim(),due:g3.value||today(),done:false});save();dlg.close();tab='task';render()};
+}
+function openCamp(id){
+  const c=id?D.campaigns.find(x=>x.id===id):{name:'',seg:'active',channel:'Sähköposti',msg:'',status:'luonnos',sent:0};
+  frm.innerHTML=`<h2 style="margin:0 0 6px">${id?'Muokkaa kampanjaa':'Uusi kampanja'}</h2>
+  <label for="h1">Nimi</label><input id="h1" value="${esc(c.name)}" required>
+  <div class="two"><div><label for="h2">Kohderyhmä</label><select id="h2">${Object.entries(SEG).map(([k,v])=>`<option value="${k}" ${c.seg===k?'selected':''}>${v}</option>`).join('')}</select></div>
+  <div><label for="h3">Kanava</label><select id="h3">${['Sähköposti','Tekstiviesti','Sivuston ilmoitus'].map(v=>`<option ${c.channel===v?'selected':''}>${v}</option>`).join('')}</select></div></div>
+  <label for="h4">Viesti</label><textarea id="h4" rows="4">${esc(c.msg)}</textarea>
+  <div class="note w" style="margin-top:10px">Muista: ei painostavaa kieltä, ei “viimeinen mahdollisuus” -viestejä, ja peruutusmahdollisuus aina näkyvissä.</div>
+  <div class="bar" style="margin:16px 0 0;justify-content:space-between"><span>${id?'<button class="b" type="button" id="del">Poista</button>':''}</span><span><button class="b" value="cancel" formnovalidate>Sulje</button> <button class="b pri" id="ok">Tallenna</button></span></div>`;
+  dlg.showModal();
+  frm.querySelector('#ok').onclick=e=>{if(!h1.value.trim())return;e.preventDefault();
+    Object.assign(c,{name:h1.value.trim(),seg:h2.value,channel:h3.value,msg:h4.value});if(!id){c.id=uid('c');D.campaigns.push(c)}save();dlg.close();render()};
+  if(id)frm.querySelector('#del').onclick=e=>{e.preventDefault();D.campaigns=D.campaigns.filter(x=>x.id!==id);save();dlg.close();render()};
+}
+
+/* ---------- CSV ---------- */
+const csvq=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+document.getElementById('exp').onclick=()=>{
+  const h=['name','email','joined','last','cashback','consent','rg','tags','note'];
+  const rows=[h.join(',')].concat(D.members.map(m=>[m.name,m.email,m.joined,m.last,m.cashback,m.consent?1:0,m.rg,m.tags.join(';'),m.note].map(csvq).join(',')));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+rows.join('\n')],{type:'text/csv'}));a.download='pelaajat.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+function parseCSV(t){const out=[];let row=[],f='',q=false;t=t.replace(/^﻿/,'');
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','||c===';'){row.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);f='';if(row.some(x=>x))out.push(row);row=[]}
+    else f+=c}
+  if(f||row.length){row.push(f);out.push(row)}return out}
+document.getElementById('imp').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;const rows=parseCSV(await f.text());e.target.value='';
+  if(rows.length<2){alert('Tiedostossa ei ole rivejä.');return}
+  const h=rows[0].map(x=>x.trim().toLowerCase());if(!h.includes('name')){alert('Ensimmäisellä rivillä pitää olla sarake "name" (muut: email, joined, last, cashback, consent, rg, tags, note).');return}
+  const g=(r,k)=>(r[h.indexOf(k)]??'').trim();let n=0,skip=0;
+  for(const r of rows.slice(1)){
+    const name=g(r,'name');if(!name){skip++;continue}
+    const rg=['none','limit','excluded'].includes(g(r,'rg'))?g(r,'rg'):'none';
+    D.members.push({id:uid('m')+n,name,email:g(r,'email'),joined:g(r,'joined')||today(),last:g(r,'last')||g(r,'joined')||today(),cashback:+g(r,'cashback')||0,
+      consent:['1','true','kyllä','yes'].includes(g(r,'consent').toLowerCase()),rg,tags:g(r,'tags').split(';').map(s=>s.trim()).filter(Boolean),note:g(r,'note'),lastContact:''});n++}
+  save();render();alert(`Tuotu ${n} pelaajaa${skip?`, ohitettu ${skip} riviä ilman nimeä`:''}. Markkinointilupa on päällä vain, jos sarakkeessa consent on 1.`)};
+document.getElementById('reset').onclick=()=>{if(confirm('Palautetaanko alkuperäinen demodata? Omat muutokset poistuvat.')){D=seed();save();render()}};
+document.getElementById('tabs').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.t;render()}};
+load();render();
+</script>
+</body>
+</html>
