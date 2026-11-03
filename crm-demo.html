@@ -182,7 +182,7 @@ function vMem(){
   view.querySelectorAll('tr.row').forEach(r=>{r.onclick=()=>openMember(r.dataset.id);r.onkeydown=e=>{if(e.key==='Enter')openMember(r.dataset.id)}});
 }
 function vCamp(){
-  view.innerHTML=`<div class="bar"><button class="b pri" id="addc">+ Uusi kampanja</button></div>`+D.campaigns.map(c=>{
+  view.innerHTML=`<div class="bar"><button class="b pri" id="addc">+ Uusi kampanja</button><button class="b" id="ideas">✨ Pyydä ideoita</button></div>`+D.campaigns.map(c=>{
     const r=reach(c),exs=Object.entries(r.ex);
     return `<div class="camp"><h3>${esc(c.name)} <span class="tag ${c.status==='valmis'?'ok':''}">${c.status}</span></h3>
      <p>${esc(c.channel)} · Kohderyhmä: <b>${SEG[c.seg]}</b> · Lähetetty yhteensä: ${c.sent}</p><p>“${esc(c.msg)}”</p>
@@ -190,7 +190,7 @@ function vCamp(){
      ${exs.length?`<p>Ohitetaan automaattisesti: ${exs.map(([k,v])=>`<span class="tag ${k.startsWith('Itse')||k.startsWith('Pelir')?'bad':'warn'}">${k}: ${v}</span>`).join('')}</p>`:''}
      <div class="bar" style="margin:8px 0 0"><button class="b" data-e="${c.id}">Muokkaa</button><button class="b pri" data-s="${c.id}" ${r.ok.length?'':'disabled'}>Merkitse lähetetyksi (demo)</button></div></div>`}).join('')+
    `<div class="note w">Demo ei lähetä oikeita viestejä. Painike vain kirjaa kontaktin pelaajille, jolloin viestikatto alkaa.</div>`;
-  document.getElementById('addc').onclick=()=>openCamp(null);
+  document.getElementById('addc').onclick=()=>openCamp(null);document.getElementById('ideas').onclick=openIdeas;
   view.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openCamp(b.dataset.e));
   view.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{
     const c=D.campaigns.find(x=>x.id===b.dataset.s),r=reach(c);
@@ -256,6 +256,43 @@ function openCamp(id){
   frm.querySelector('#ok').onclick=e=>{if(!h1.value.trim())return;e.preventDefault();
     Object.assign(c,{name:h1.value.trim(),seg:h2.value,channel:h3.value,msg:h4.value});if(!id){c.id=uid('c');D.campaigns.push(c)}save();dlg.close();render()};
   if(id)frm.querySelector('#del').onclick=e=>{e.preventDefault();D.campaigns=D.campaigns.filter(x=>x.id!==id);save();dlg.close();render()};
+}
+
+
+/* ---------- idea advisor (calls /api/ideas; only counts are sent, never names or emails) ---------- */
+const GOALS={welcome:'Tervetuloviesti uusille',thanks:'Kiitos aktiivisille',event:'Tapahtuma tai turnaus',winback:'Yksi muistutus hiljenevälle',info:'Tiedote uusista toiminnoista',other:'Muu (kirjoita alle)'};
+const TONES={friendly:'Ystävällinen',formal:'Asiallinen',short:'Lyhyt ja napakka'};
+const IERR={not_configured:'Ideapalvelu ei ole vielä käytössä (palvelimelta puuttuu avain).',busy:'Päivän ideakiintiö on täynnä. Yritä huomenna.',parse:'Vastausta ei saatu luettua. Yritä uudelleen.',upstream:'Yhteys ideapalveluun epäonnistui. Yritä hetken päästä uudelleen.',bad_input:'Valinnoissa on virhe.'};
+function openIdeas(){
+  frm.innerHTML=`<h2 style="margin:0 0 6px">Pyydä kampanjaideoita</h2>
+  <div class="mut">Palvelulle lähetetään vain määriä (kuinka monta pelaajaa ryhmässä on). Nimiä ja sähköposteja ei lähetetä.</div>
+  <div class="two"><div><label for="i1">Kohderyhmä</label><select id="i1">${Object.entries(SEG).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+  <div><label for="i3">Sävy</label><select id="i3">${Object.entries(TONES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div></div>
+  <label for="i2">Tavoite</label><select id="i2">${Object.entries(GOALS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+  <label for="i4">Lisätieto (valinnainen)</label><input id="i4" maxlength="200" placeholder="esim. viikonlopun turnaus, uusi ominaisuus">
+  <div id="iout" aria-live="polite" style="margin-top:12px"></div>
+  <div class="bar" style="margin:14px 0 0;justify-content:flex-end"><button class="b" value="cancel" formnovalidate>Sulje</button><button class="b pri" id="igo">Pyydä ideoita</button></div>`;
+  dlg.showModal();
+  const out=frm.querySelector('#iout'),go=frm.querySelector('#igo');
+  go.onclick=async e=>{
+    e.preventDefault();go.disabled=true;out.innerHTML='<div class="mut">Mietitään ideoita…</div>';
+    const seg=frm.querySelector('#i1').value,r=reach({seg});
+    const avg=r.inSeg.length?r.inSeg.reduce((a,m)=>a+m.cashback,0)/r.inSeg.length:0;
+    try{
+      const res=await fetch('/api/ideas',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({seg,goal:frm.querySelector('#i2').value,tone:frm.querySelector('#i3').value,note:frm.querySelector('#i4').value,
+        stats:{inSeg:r.inSeg.length,reachable:r.ok.length,avgCashback:avg,excluded:r.ex}})});
+      const j=await res.json().catch(()=>({}));
+      if(!res.ok||!j.ideas){out.innerHTML=`<div class="note w">${esc(IERR[j.error]||IERR.upstream)}</div>`}
+      else{
+        out.innerHTML=j.ideas.map((x,i)=>`<div class="camp"><h3>${esc(x.title)}</h3><p>${esc(x.idea)}</p><p>“${esc(x.message)}”</p>
+          <p><b>Ajoitus:</b> ${esc(x.timing)}<br><b>Seurattava luku:</b> ${esc(x.metric)}<br><b>Huomio:</b> ${esc(x.caution)}</p>
+          <button class="b pri" data-use="${i}">Käytä luonnoksena</button></div>`).join('')+'<div class="note w">Tekoälyn ehdotukset ovat lähtökohtia. Tarkista ehdot, tietosuoja ja lainsäädäntö ennen lähetystä.</div>';
+        out.querySelectorAll('[data-use]').forEach(bn=>bn.onclick=ev=>{ev.preventDefault();const x=j.ideas[+bn.dataset.use];
+          D.campaigns.push({id:uid('c'),name:x.title,seg,channel:'Sähköposti',msg:x.message,status:'luonnos',sent:0});save();bn.textContent='Lisätty luonnoksiin';bn.disabled=true;render()});
+      }
+    }catch(err){out.innerHTML=`<div class="note w">${esc(location.protocol==='file:'?'Ideapalvelu toimii vasta kun sivu on julkaistu Netlifyssä (ei suoraan tiedostona).':IERR.upstream)}</div>`}
+    go.disabled=false;
+  };
 }
 
 /* ---------- CSV ---------- */
