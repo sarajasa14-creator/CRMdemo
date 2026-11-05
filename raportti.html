@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Botin raportti (demo)</title>
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#14231f;--mut:#5b6b66;--line:#dde4e1;--pri:#0f5c4a;--onpri:#fff;--warn:#fef3c7;--warnink:#7a4a05}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1715;--card:#17211e;--ink:#e8f0ed;--mut:#9fb0aa;--line:#2a3a35;--pri:#4cc2a1;--onpri:#04140f;--warn:#3a2c0c;--warnink:#fbbf24}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0 0 10px}
+.mut{color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.tabs button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;border-radius:999px;padding:7px 16px;cursor:pointer}
+.tabs button[aria-selected=true],.btn.pri{background:var(--pri);color:var(--onpri);border-color:var(--pri);font-weight:700}
+input[type=password],textarea{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+textarea{min-height:80px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font-size:26px}
+.bar{display:grid;grid-template-columns:170px 1fr 40px;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+.bar i{display:block;height:14px;background:var(--pri);border-radius:7px;min-width:2px}
+ul{padding-left:18px;margin:6px 0}li{margin:4px 0;overflow-wrap:anywhere}
+.tk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
+.tk pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;margin:6px 0}
+.tk details{font-size:14px;color:var(--mut)}
+.err{background:var(--warn);color:var(--warnink);padding:8px 12px;border-radius:10px;margin:10px 0}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+@media(max-width:520px){.bar{grid-template-columns:110px 1fr 32px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Botin raportti</h1>
+<p class="mut">Demo. Luvut ovat vain testikeskusteluista, ei oikeita asiakkaita. Sivu vaatii ylläpitoavaimen (Netlifyn ADMIN_KEY).</p>
+
+<section id="login" class="card">
+  <h2>Kirjaudu</h2>
+  <div class="row"><input id="key" type="password" autocomplete="off" placeholder="Ylläpitoavain" aria-label="Ylläpitoavain" style="flex:1;min-width:200px"><button id="go" class="btn pri">Avaa</button></div>
+  <div id="lerr" class="err" hidden></div>
+</section>
+
+<section id="app" hidden>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-t="sum" aria-selected="true">Yhteenveto</button>
+    <button role="tab" data-t="tix" aria-selected="false">Tiketit</button>
+    <button role="tab" data-t="cmp" aria-selected="false">Kampanjatila</button>
+    <button class="btn" id="out" style="margin-left:auto">Kirjaudu ulos</button>
+  </div>
+  <div id="aerr" class="err" hidden></div>
+
+  <div id="p-sum">
+    <div class="card"><div class="kpis" id="kpis"></div></div>
+    <div class="card"><h2>Aiheet (14 pv)</h2><div id="topics"></div></div>
+    <div class="card"><h2>Kysymykset, joihin botti ei osannut vastata</h2>
+      <p class="mut">Nämä ohjattiin ihmiselle. Hyvä lista tiedon puutteista: lisää vastaukset tietopohjaan.</p><ul id="una"></ul></div>
+  </div>
+
+  <div id="p-tix" hidden>
+    <div class="card"><h2>Jätetyt viestit</h2><div id="tix"></div></div>
+  </div>
+
+  <div id="p-cmp" hidden>
+    <div class="card"><h2>Ruuhka- ja kampanjailmoitus</h2>
+      <p class="mut">Teksti näkyy chatin yläreunassa kaikille, ja botti osaa viitata siihen. Tyhjä teksti poistaa ilmoituksen. Esim. "Ruuhka: vastaukset hakemuksiin voivat viivästyä."</p>
+      <textarea id="camp" maxlength="300" aria-label="Ilmoitus"></textarea>
+      <div class="row" style="margin-top:8px"><button id="save" class="btn pri">Tallenna</button><button id="clear" class="btn">Tyhjennä</button><span id="cnt" class="mut"></span><span id="ok" class="mut" hidden>Tallennettu</span></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const LABEL = { how_it_works: 'Palvelun toiminta', cashback_missing: 'Cashback puuttuu', application_rejected: 'Hakemus hylätty', kyc: 'Tunnistautuminen', timing: 'Käsittelyaika', achievements: 'Saavutukset', contact: 'Yhteydenotto', responsible_gambling: 'Vastuullinen pelaaminen', other: 'Muu' };
+let KEY = '';
+try { KEY = sessionStorage.getItem('rk') || ''; } catch (e) {}
+
+async function api(what, body) {
+  const opt = { headers: { 'x-admin-key': KEY } };
+  let url = '/api/admin';
+  if (body) { opt.method = 'POST'; opt.headers['content-type'] = 'application/json'; opt.body = JSON.stringify(body); } else url += '?what=' + what;
+  const r = await fetch(url, opt); const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.error || 'error'); e.code = j.error; throw e; }
+  return j;
+}
+function msg(el, t) { el.textContent = t; el.hidden = !t; }
+function el(tag, text, cls) { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+
+function showApp() { $('login').hidden = true; $('app').hidden = false; loadSum(); }
+$('go').onclick = async () => {
+  KEY = $('key').value; msg($('lerr'), '');
+  try { await api('config'); try { sessionStorage.setItem('rk', KEY); } catch (e) {} $('key').value = ''; showApp(); }
+  catch (e) { KEY = ''; msg($('lerr'), e.code === 'not_configured' ? 'ADMIN_KEY puuttuu Netlifystä. Lisää se ja julkaise sivusto uudelleen.' : e.code === 'unauthorized' ? 'Väärä avain.' : 'Yhteys epäonnistui.'); }
+};
+$('key').onkeydown = e => { if (e.key === 'Enter') $('go').click(); };
+$('out').onclick = () => { try { sessionStorage.removeItem('rk'); } catch (e) {} KEY = ''; $('app').hidden = true; $('login').hidden = false; };
+
+document.querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs [data-t]').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['sum', 'tix', 'cmp'].forEach(t => $('p-' + t).hidden = t !== b.dataset.t);
+  ({ sum: loadSum, tix: loadTix, cmp: loadCmp })[b.dataset.t]();
+});
+function fail(e) { if (e.code === 'unauthorized') { $('out').click(); return; } msg($('aerr'), 'Tietojen haku epäonnistui.'); }
+
+async function loadSum() {
+  msg($('aerr'), '');
+  try {
+    const d = await api('stats');
+    const total = d.days.reduce((a, x) => a + x.total, 0), hand = d.days.reduce((a, x) => a + x.handoff, 0);
+    const k = $('kpis'); k.textContent = '';
+    [['Kysymyksiä', total], ['Ohjattu ihmiselle', hand], ['Botti selvisi itse', total ? Math.round(100 * (total - hand) / total) + ' %' : '–']].forEach(([l, v]) => { const c = el('div', null, 'kpi'); c.append(el('b', String(v)), el('span', l, 'mut')); k.append(c); });
+    const t = $('topics'); t.textContent = '';
+    const ent = Object.entries(d.topics).sort((a, b) => b[1] - a[1]), max = ent.length ? ent[0][1] : 1;
+    if (!ent.length) t.append(el('p', 'Ei vielä dataa. Testaa bottia ensin.', 'mut'));
+    ent.forEach(([n, v]) => { const r = el('div', null, 'bar'), i = el('i'); i.style.width = Math.round(100 * v / max) + '%'; const w = el('div'); w.append(i); r.append(el('span', LABEL[n] || n), w, el('span', String(v))); t.append(r); });
+    const u = $('una'); u.textContent = '';
+    if (!d.unanswered.length) u.append(el('li', 'Ei vielä.', 'mut'));
+    d.unanswered.forEach(x => u.append(el('li', x.date + ': ' + x.q)));
+  } catch (e) { fail(e); }
+}
+async function loadTix() {
+  msg($('aerr'), '');
+  try {
+    const d = await api('tickets'), box = $('tix'); box.textContent = '';
+    if (!d.tickets.length) box.append(el('p', 'Ei jätettyjä viestejä.', 'mut'));
+    d.tickets.forEach(t => {
+      const c = el('div', null, 'tk');
+      c.append(el('div', new Date(t.at).toLocaleString('fi-FI') + (t.email ? ' · ' + t.email : ''), 'mut'), el('pre', t.message));
+      if (t.transcript && t.transcript.length) { const dt = el('details'); dt.append(el('summary', 'Keskustelu (' + t.transcript.length + ')')); t.transcript.forEach(m => dt.append(el('div', (m.role === 'user' ? 'Asiakas: ' : 'Botti: ') + m.content))); c.append(dt); }
+      const del = el('button', 'Poista', 'btn'); del.onclick = async () => { del.disabled = true; try { await api(null, { action: 'delete_ticket', id: t.id }); c.remove(); } catch (e) { del.disabled = false; fail(e); } };
+      c.append(del); box.append(c);
+    });
+  } catch (e) { fail(e); }
+}
+async function loadCmp() {
+  msg($('aerr'), '');
+  try { const d = await api('config'); $('camp').value = d.campaign || ''; count(); } catch (e) { fail(e); }
+}
+function count() { $('cnt').textContent = $('camp').value.length + ' / 300'; }
+$('camp').oninput = count;
+async function saveCamp(text) {
+  try { await api(null, { action: 'campaign', text }); $('camp').value = text; count(); $('ok').hidden = false; setTimeout(() => $('ok').hidden = true, 2500); }
+  catch (e) { fail(e); }
+}
+$('save').onclick = () => saveCamp($('camp').value.trim());
+$('clear').onclick = () => saveCamp('');
+
+if (KEY) api('config').then(showApp).catch(() => { KEY = ''; });
+})();
+</script>
+</body>
+</html>

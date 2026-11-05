@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Bottivertailu</title>
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#14231f;--mut:#5b6b66;--line:#dde4e1;--pri:#0f5c4a;--onpri:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1715;--card:#17211e;--ink:#e8f0ed;--mut:#9fb0aa;--line:#2a3a35;--pri:#4cc2a1;--onpri:#04140f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}.mut{color:var(--mut);font-size:14px}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;margin:14px 0}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:13px;color:var(--mut)}
+td input[type=text],td select{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.sum{display:flex;gap:12px;flex-wrap:wrap}
+.sum div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:200px}
+.sum b{font-size:22px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;border-radius:999px;padding:7px 16px;cursor:pointer}
+.btn.pri{background:var(--pri);color:var(--onpri);border-color:var(--pri);font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+@media print{.row,.noprint{display:none}body{background:#fff;color:#000}td input,td select{border:0;appearance:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Chatbottien vertailu: sama kysymys, kaksi bottia</h1>
+<p class="mut">Täytä itse testaamalla: esitä jokaiselle botille sama kysymys ja valitse tulos. Tiedot tallentuvat vain tähän selaimeen. Älä jaa tulosta ennen kuin kaikki rivit on oikeasti testattu.</p>
+<div class="wrap"><table>
+<thead><tr><th>Kysymys / tilanne</th><th>Heidän bottinsa</th><th>Minun bottini</th><th>Huomio</th></tr></thead>
+<tbody id="rows"></tbody>
+</table></div>
+<div class="sum" id="sum"></div>
+<div class="row noprint"><button id="add" class="btn">+ Lisää rivi</button><button id="print" class="btn pri">Tulosta / PDF</button><button id="reset" class="btn">Palauta alkutila</button></div>
+<p class="mut">Tulokset: Toimi, Osittain, Ei toiminut tai Ei testattu. Vertailu kertoo vain näistä testikysymyksistä, ei botin yleisestä laadusta.</p>
+</main>
+<script>
+(() => {
+'use strict';
+const OPT = ['Ei testattu', 'Toimi', 'Osittain', 'Ei toiminut'];
+const DEFAULT = [
+  { q: 'Miten KYC eli tunnistautuminen tehdään?', a: 'Toimi', b: 'Ei testattu', n: '' },
+  { q: 'Puuttuva cashback', a: 'Osittain', b: 'Ei testattu', n: '' },
+  { q: 'Hylätty hakemus, miksi?', a: 'Ei toiminut', b: 'Ei testattu', n: '' },
+  { q: 'Puhu ihmiselle (yöllä, tuki kiinni)', a: 'Ei toiminut', b: 'Ei testattu', n: '' },
+  { q: 'Kerron pelaamisen karanneen käsistä', a: 'Ei testattu', b: 'Ei testattu', n: '' }
+];
+const KEY = 'vertailu-v1';
+let rows;
+try { rows = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+if (!Array.isArray(rows)) rows = DEFAULT.map(r => Object.assign({}, r));
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(rows)); } catch (e) {} };
+const tb = document.getElementById('rows');
+
+function sel(v, on) { const s = document.createElement('select'); OPT.forEach(o => { const x = document.createElement('option'); x.textContent = o; x.selected = o === v; s.append(x); }); s.onchange = () => on(s.value); return s; }
+function txt(v, ph, on) { const i = document.createElement('input'); i.type = 'text'; i.value = v; i.maxLength = 200; i.placeholder = ph; i.oninput = () => on(i.value); return i; }
+function cell(node) { const td = document.createElement('td'); td.append(node); return td; }
+
+function summary() {
+  const d = document.getElementById('sum'); d.textContent = '';
+  [['Heidän bottinsa', 'a'], ['Minun bottini', 'b']].forEach(([l, k]) => {
+    const tested = rows.filter(r => r[k] !== 'Ei testattu'), ok = tested.filter(r => r[k] === 'Toimi').length;
+    const c = document.createElement('div'), b = document.createElement('b'), s = document.createElement('span');
+    b.textContent = tested.length ? ok + ' / ' + tested.length : '–'; s.className = 'mut'; s.textContent = ' toimi · ' + l;
+    c.append(b, s); d.append(c);
+  });
+}
+function draw() {
+  tb.textContent = '';
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.append(cell(txt(r.q, 'Kysymys', v => { r.q = v; save(); })), cell(sel(r.a, v => { r.a = v; save(); summary(); })), cell(sel(r.b, v => { r.b = v; save(); summary(); })), cell(txt(r.n, 'Mitä tapahtui', v => { r.n = v; save(); })));
+    const del = document.createElement('button'); del.className = 'btn noprint'; del.textContent = '×'; del.setAttribute('aria-label', 'Poista rivi'); del.onclick = () => { rows.splice(i, 1); save(); draw(); };
+    tr.lastChild.append(del); tb.append(tr);
+  });
+  summary();
+}
+document.getElementById('add').onclick = () => { rows.push({ q: '', a: 'Ei testattu', b: 'Ei testattu', n: '' }); save(); draw(); };
+document.getElementById('print').onclick = () => window.print();
+document.getElementById('reset').onclick = () => { rows = DEFAULT.map(r => Object.assign({}, r)); save(); draw(); };
+draw();
+})();
+</script>
+</body>
+</html>
