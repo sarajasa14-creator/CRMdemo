@@ -36,7 +36,7 @@ Weekly and monthly achievements are renewed every week or month and require appr
 Members also have levels (LVL). Completing the tasks of a level moves the member to the next level, which can bring higher cashback on approved applications.
 
 # Contact and support
-Live chat support is open Monday to Friday 08:00-16:00 Finnish time. Support email: support@mrcashback.com for urgent matters outside these hours. The bot cannot see accounts and cannot promise answer times.
+Live chat support is open Monday to Friday 08:00-16:00 Finnish time. Outside these hours the member can leave a message in the chat and it waits for the next working day. The bot cannot see accounts and cannot promise answer times.
 Feedback and problem reports can be sent through the feedback form: title, free-form message and optionally up to two images (only .jpg and .png, maximum 10 MB each). It helps to tell which browser and device was used and how often the problem appears.
 
 # If cashback has not arrived
