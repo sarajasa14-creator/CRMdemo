@@ -15,7 +15,7 @@ export async function callLLM({ system, messages, maxTokens, timeoutMs }) {
   if (PROVIDER === 'gemini') {
     const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const generationConfig = { maxOutputTokens: maxTokens, temperature: 0.4 };
-    if (/flash/i.test(model)) generationConfig.thinkingConfig = { thinkingBudget: 0 }; // thinking tokens would eat the answer budget
+    if (/gemini-2\.5-flash/i.test(model)) generationConfig.thinkingConfig = { thinkingBudget: 0 }; // only 2.5 models accept this; newer models reject it
     r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
