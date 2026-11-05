@@ -10,10 +10,10 @@ export const llmConfigured = () =>
   PROVIDER === 'gemini' ? !!process.env.GEMINI_API_KEY : !!process.env.ANTHROPIC_API_KEY;
 
 /* messages: [{ role: 'user' | 'assistant', content: string }]. Returns the reply text, or throws Error with .status set. */
-export async function callLLM({ system, messages, maxTokens, timeoutMs }) {
+async function callOnce({ system, messages, maxTokens, timeoutMs, model: modelOverride }) {
   let r;
   if (PROVIDER === 'gemini') {
-    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const model = modelOverride || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const generationConfig = { maxOutputTokens: maxTokens, temperature: 0.4 };
     if (/gemini-2\.5-flash/i.test(model)) generationConfig.thinkingConfig = { thinkingBudget: 0 }; // only 2.5 models accept this; newer models reject it
     r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
@@ -46,4 +46,17 @@ export async function callLLM({ system, messages, maxTokens, timeoutMs }) {
     return parts.map(p => p.text || '').join('\n').trim();
   }
   return ((j.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n')).trim();
+}
+
+/* Google's servers are sometimes briefly overloaded (503) or rate limited (429). Try once more after a short pause; if
+   GEMINI_FALLBACK_MODEL is set (e.g. gemini-2.5-flash-lite), the second try uses that model instead. */
+const RETRY = new Set([429, 500, 502, 503, 504]);
+export async function callLLM(opts) {
+  try { return await callOnce(opts); }
+  catch (e) {
+    if (!RETRY.has(e && e.status)) throw e;
+    await new Promise(r => setTimeout(r, 1200));
+    const fb = PROVIDER === 'gemini' ? process.env.GEMINI_FALLBACK_MODEL : '';
+    return callOnce(fb ? { ...opts, model: fb } : opts);
+  }
 }
